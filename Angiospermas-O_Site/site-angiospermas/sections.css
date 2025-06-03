@@ -1,0 +1,87 @@
+.section {
+  padding: 80px 0;
+}
+
+.bg-light {
+  background: #f8f9fa;
+}
+
+.section h2 {
+  text-align: center;
+  font-size: 2.5rem;
+  color: #2d5a27;
+  margin-bottom: 3rem;
+}
+
+.section h3 {
+  text-align: center;
+  color: #2d5a27;
+  margin: 3rem 0 2rem;
+  font-size: 2rem;
+}
+
+.intro {
+  text-align: center;
+  margin-bottom: 3rem;
+  font-size: 1.1rem;
+  color: #666;
+}
+
+.highlight {
+  text-align: center;
+  font-size: 1.2rem;
+  color: #4a7c59;
+  font-weight: bold;
+  background: #f0f8f0;
+  padding: 1rem;
+  border-radius: 10px;
+  margin: 2rem 0;
+}
+
+.game-info h3 {
+  color: #2d5a27;
+  margin-bottom: 1rem;
+  font-size: 2rem;
+  text-align: left;
+}
+
+.game-info p {
+  color: #666;
+  margin-bottom: 2rem;
+}
+
+.game-features {
+  margin-bottom: 2rem;
+}
+
+.game-features div {
+  padding: 0.5rem 0;
+  color: #666;
+  font-size: 1.1rem;
+}
+
+.game-description {
+  background: #f8f9fa;
+  padding: 1.5rem;
+  border-radius: 10px;
+  margin-bottom: 2rem;
+}
+
+.game-preview img {
+  width: 100%;
+  border-radius: 15px;
+}
+
+@media (max-width: 768px) {
+  .section h2 {
+    font-size: 2rem;
+  }
+
+  .section h3 {
+    font-size: 1.5rem;
+  }
+
+  .game-info h3 {
+    text-align: center;
+  }
+}

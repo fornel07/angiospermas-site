@@ -1,0 +1,1102 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Coco 3D com Anime.js - Angiospermas</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/animejs/3.2.1/anime.min.js"></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            font-family: 'Arial', sans-serif;
+            background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+        }
+
+        #canvas-container {
+            position: relative;
+            width: 100vw;
+            height: 100vh;
+        }
+
+        .navbar {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: rgba(45, 90, 39, 0.95);
+            backdrop-filter: blur(10px);
+            z-index: 1000;
+            padding: 1rem 0;
+            transform: translateY(-100%);
+        }
+
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            color: white;
+            font-size: 1.5rem;
+            font-weight: bold;
+            text-decoration: none;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 2rem;
+            margin: 0;
+        }
+
+        .nav-menu a {
+            color: white;
+            text-decoration: none;
+            font-weight: 500;
+            transition: color 0.3s;
+        }
+
+        .nav-menu a:hover {
+            color: #a8d5a8;
+        }
+
+        .info-panel {
+            position: fixed;
+            bottom: 20px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            max-width: 380px;
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateY(100%);
+            opacity: 0;
+        }
+
+        .info-panel h3 {
+            color: #2d5a27;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .info-panel p {
+            color: #666;
+            line-height: 1.7;
+            margin-bottom: 12px;
+        }
+
+        .controls {
+            position: fixed;
+            top: 90px;
+            right: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 25px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateX(100%);
+            opacity: 0;
+        }
+
+        .control-button {
+            background: linear-gradient(135deg, #4a7c59, #2d5a27);
+            color: white;
+            border: none;
+            padding: 12px 18px;
+            margin: 6px;
+            border-radius: 12px;
+            cursor: pointer;
+            font-size: 0.95rem;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(74, 124, 89, 0.3);
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            min-width: 140px;
+            transform: scale(0.8);
+            opacity: 0;
+        }
+
+        .control-button:hover {
+            transform: translateY(-3px) scale(1.05);
+            box-shadow: 0 6px 20px rgba(74, 124, 89, 0.4);
+        }
+
+        .control-button:active {
+            transform: translateY(-1px) scale(0.98);
+        }
+
+        .anatomy-info {
+            position: fixed;
+            top: 90px;
+            left: 20px;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: 20px;
+            border-radius: 20px;
+            box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+            z-index: 100;
+            max-width: 300px;
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            transform: translateX(-100%);
+            opacity: 0;
+        }
+
+        .anatomy-info h4 {
+            color: #2d5a27;
+            margin-bottom: 15px;
+            font-size: 1.1rem;
+        }
+
+        .anatomy-item {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: all 0.3s;
+            transform: translateX(-20px);
+            opacity: 0;
+        }
+
+        .anatomy-item:hover {
+            background: rgba(74, 124, 89, 0.1);
+            transform: translateX(0px) scale(1.02);
+        }
+
+        .color-indicator {
+            width: 20px;
+            height: 20px;
+            border-radius: 50%;
+            border: 2px solid #fff;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+            transform: scale(0);
+        }
+
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+            
+            .info-panel, .controls, .anatomy-info {
+                position: relative;
+                margin: 10px;
+                max-width: none;
+            }
+        }
+
+        .loading {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            color: #2d5a27;
+            font-size: 1.8rem;
+            z-index: 1001;
+            text-align: center;
+        }
+
+        .loading-icon {
+            font-size: 3rem;
+            margin-bottom: 20px;
+            transform: scale(0);
+        }
+
+        .loading-text {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background: rgba(45, 90, 39, 0.2);
+            border-radius: 2px;
+            margin: 20px auto;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #4a7c59, #2d5a27);
+            border-radius: 2px;
+            transform: translateX(-100%);
+        }
+
+        .floating-particles {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            pointer-events: none;
+            z-index: 1;
+        }
+
+        .particle {
+            position: absolute;
+            width: 4px;
+            height: 4px;
+            background: rgba(74, 124, 89, 0.3);
+            border-radius: 50%;
+            opacity: 0;
+        }
+
+        .coconut-info-tooltip {
+            position: absolute;
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 8px 12px;
+            border-radius: 8px;
+            font-size: 0.9rem;
+            pointer-events: none;
+            z-index: 1000;
+            opacity: 0;
+            transform: translateY(10px);
+        }
+    </style>
+</head>
+<body>
+    <div class="floating-particles" id="particles"></div>
+    
+    <div class="loading" id="loading">
+        <div class="loading-icon">
+            <i class="fas fa-seedling"></i>
+        </div>
+        <div class="loading-text">Criando coco realista com Anime.js...</div>
+        <div class="progress-bar">
+            <div class="progress-fill"></div>
+        </div>
+    </div>
+
+    <nav class="navbar" id="navbar">
+        <div class="nav-container">
+            <a href="index.html" class="logo">
+                <i class="fas fa-leaf"></i> Angiospermas
+            </a>
+            <ul class="nav-menu">
+                <li><a href="index.html">Voltar ao Site</a></li>
+                
+                <li><a href="jogo-memoria.html">Jogo da Memória</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div id="canvas-container"></div>
+
+    <div class="coconut-info-tooltip" id="tooltip"></div>
+
+    <div class="anatomy-info" id="anatomy-info">
+        <h4>🥥 Anatomia do Coco</h4>
+        <div class="anatomy-item" data-part="epicarpo">
+            <div class="color-indicator" style="background: #8B4513;"></div>
+            <span>Epicarpo (casca externa)</span>
+        </div>
+        <div class="anatomy-item" data-part="mesocarpo">
+            <div class="color-indicator" style="background: #D2691E;"></div>
+            <span>Mesocarpo (fibra)</span>
+        </div>
+        <div class="anatomy-item" data-part="endocarpo">
+            <div class="color-indicator" style="background: #654321;"></div>
+            <span>Endocarpo (casca dura)</span>
+        </div>
+        <div class="anatomy-item" data-part="endosperma">
+            <div class="color-indicator" style="background: #FFFEF7;"></div>
+            <span>Endosperma (polpa)</span>
+        </div>
+        <div class="anatomy-item" data-part="agua">
+            <div class="color-indicator" style="background: #E6F3FF;"></div>
+            <span>Água de coco</span>
+        </div>
+    </div>
+
+    <div class="controls" id="controls">
+        <h4 style="color: #2d5a27; margin-bottom: 20px;">🎮 Controles Interativos</h4>
+        <button class="control-button" onclick="explodeCoco()" data-tooltip="Separar todas as camadas do coco">
+            <i class="fas fa-expand-arrows-alt"></i> Explodir Coco
+        </button>
+        <button class="control-button" onclick="rotateCoco()" data-tooltip="Rotação automática contínua">
+            <i class="fas fa-sync-alt"></i> Rotacionar
+        </button>
+        <button class="control-button" onclick="changeLighting()" data-tooltip="Alterar modo de iluminação">
+            <i class="fas fa-lightbulb"></i> Iluminação
+        </button>
+        <button class="control-button" onclick="resetCoco()" data-tooltip="Voltar ao estado original">
+            <i class="fas fa-undo"></i> Resetar
+        </button>
+        <button class="control-button" onclick="playSequence()" data-tooltip="Animação completa automática">
+            <i class="fas fa-play"></i> Sequência
+        </button>
+    </div>
+
+    <div class="info-panel" id="info-panel">
+        <h3>
+            <i class="fas fa-info-circle"></i>
+            Coco Realista 3D
+        </h3>
+        <p>Explore a anatomia detalhada de um coco maduro (Cocos nucifera) com animações fluidas do Anime.js. Este modelo 3D representa fielmente todas as camadas do fruto.</p>
+        
+        <p><strong>Características do modelo:</strong></p>
+        <ul style="color: #666; line-height: 1.7; margin-left: 20px;">
+            <li>• Casca fibrosa texturizada</li>
+            <li>• Polpa branca cremosa</li>
+            <li>• Cavidade interna realista</li>
+            <li>• Fibras naturais (coir)</li>
+            <li>• Animações suaves e fluidas</li>
+        </ul>
+        
+        <p style="margin-top: 15px;"><strong>🖱️ Arraste</strong> para rotacionar • <strong>🔍 Scroll</strong> para zoom</p>
+    </div>
+
+    <script>
+        // Variáveis globais
+        let scene, camera, renderer;
+        let coconutGroup, coconutHalf1, coconutHalf2, coconutMeat, coconutWater;
+        let fibers = [];
+        let meatPieces = [];
+        let isExploded = false;
+        let isRotating = false;
+        let lightingMode = 'natural';
+        let animationId;
+        let isAnimating = false;
+
+        // Controles de mouse
+        let mouseX = 0, mouseY = 0;
+        let targetRotationX = 0, targetRotationY = 0;
+        let mouseXOnMouseDown = 0, mouseYOnMouseDown = 0;
+        let targetRotationOnMouseDownX = 0, targetRotationOnMouseDownY = 0;
+        let isMouseDown = false;
+
+        // Inicialização com animação
+        function init() {
+            createFloatingParticles();
+            animateLoading();
+            
+            setTimeout(() => {
+                setupScene();
+                createRealisticCoconut();
+                setupMouseControls();
+                animate();
+                animateInterfaceIn();
+            }, 2000);
+        }
+
+        function createFloatingParticles() {
+            const particlesContainer = document.getElementById('particles');
+            
+            for (let i = 0; i < 20; i++) {
+                const particle = document.createElement('div');
+                particle.className = 'particle';
+                particle.style.left = Math.random() * 100 + '%';
+                particle.style.top = Math.random() * 100 + '%';
+                particlesContainer.appendChild(particle);
+                
+                // Animar partículas
+                anime({
+                    targets: particle,
+                    opacity: [0, 0.6, 0],
+                    scale: [0, 1, 0],
+                    translateY: -100,
+                    duration: 3000 + Math.random() * 2000,
+                    delay: Math.random() * 2000,
+                    loop: true,
+                    easing: 'easeInOutSine'
+                });
+            }
+        }
+
+        function animateLoading() {
+            // Animar ícone de loading
+            anime({
+                targets: '.loading-icon',
+                scale: [0, 1.2, 1],
+                rotate: 360,
+                duration: 1000,
+                easing: 'easeOutElastic(1, .8)'
+            });
+
+            // Animar texto
+            anime({
+                targets: '.loading-text',
+                opacity: [0, 1],
+                translateY: [20, 0],
+                duration: 800,
+                delay: 500,
+                easing: 'easeOutQuad'
+            });
+
+            // Animar barra de progresso
+            anime({
+                targets: '.progress-fill',
+                translateX: ['-100%', '0%'],
+                duration: 1500,
+                delay: 800,
+                easing: 'easeInOutQuad',
+                complete: () => {
+                    setTimeout(() => {
+                        anime({
+                            targets: '#loading',
+                            opacity: [1, 0],
+                            scale: [1, 0.8],
+                            duration: 500,
+                            easing: 'easeInQuad',
+                            complete: () => {
+                                document.getElementById('loading').style.display = 'none';
+                            }
+                        });
+                    }, 300);
+                }
+            });
+        }
+
+        function animateInterfaceIn() {
+            // Animar navbar
+            anime({
+                targets: '#navbar',
+                translateY: ['-100%', '0%'],
+                duration: 800,
+                delay: 200,
+                easing: 'easeOutQuad'
+            });
+
+            // Animar painéis
+            anime({
+                targets: '#info-panel',
+                translateY: ['100%', '0%'],
+                opacity: [0, 1],
+                duration: 800,
+                delay: 400,
+                easing: 'easeOutQuad'
+            });
+
+            anime({
+                targets: '#controls',
+                translateX: ['100%', '0%'],
+                opacity: [0, 1],
+                duration: 800,
+                delay: 600,
+                easing: 'easeOutQuad'
+            });
+
+            anime({
+                targets: '#anatomy-info',
+                translateX: ['-100%', '0%'],
+                opacity: [0, 1],
+                duration: 800,
+                delay: 800,
+                easing: 'easeOutQuad'
+            });
+
+            // Animar botões individualmente
+            anime({
+                targets: '.control-button',
+                scale: [0.8, 1],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(100, {start: 1000}),
+                easing: 'easeOutElastic(1, .8)'
+            });
+
+            // Animar itens da anatomia
+            anime({
+                targets: '.anatomy-item',
+                translateX: [-20, 0],
+                opacity: [0, 1],
+                duration: 600,
+                delay: anime.stagger(100, {start: 1200}),
+                easing: 'easeOutQuad'
+            });
+
+            // Animar indicadores de cor
+            anime({
+                targets: '.color-indicator',
+                scale: [0, 1],
+                duration: 400,
+                delay: anime.stagger(100, {start: 1400}),
+                easing: 'easeOutElastic(1, .8)'
+            });
+        }
+
+        function setupScene() {
+            // Criar cena
+            scene = new THREE.Scene();
+            scene.background = new THREE.Color(0xf8f9fa);
+
+            // Configurar câmera
+            camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.1, 1000);
+            camera.position.set(0, 0, 8);
+
+            // Configurar renderizador
+            renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+            renderer.setSize(window.innerWidth, window.innerHeight);
+            renderer.shadowMap.enabled = true;
+            renderer.shadowMap.type = THREE.PCFSoftShadowMap;
+            renderer.physicallyCorrectLights = true;
+            renderer.toneMapping = THREE.ACESFilmicToneMapping;
+            renderer.toneMappingExposure = 1.2;
+            
+            document.getElementById('canvas-container').appendChild(renderer.domElement);
+
+            createLighting();
+            createEnvironment();
+        }
+
+        function createLighting() {
+            // Luz ambiente suave
+            const ambientLight = new THREE.AmbientLight(0xffffff, 0.3);
+            scene.add(ambientLight);
+
+            // Luz principal (key light)
+            const keyLight = new THREE.DirectionalLight(0xffffff, 1.2);
+            keyLight.position.set(5, 5, 5);
+            keyLight.castShadow = true;
+            keyLight.shadow.mapSize.width = 2048;
+            keyLight.shadow.mapSize.height = 2048;
+            keyLight.shadow.camera.near = 0.5;
+            keyLight.shadow.camera.far = 50;
+            keyLight.shadow.camera.left = -10;
+            keyLight.shadow.camera.right = 10;
+            keyLight.shadow.camera.top = 10;
+            keyLight.shadow.camera.bottom = -10;
+            keyLight.shadow.bias = -0.0001;
+            scene.add(keyLight);
+
+            // Luz de preenchimento
+            const fillLight = new THREE.DirectionalLight(0x87CEEB, 0.4);
+            fillLight.position.set(-3, 2, 3);
+            scene.add(fillLight);
+
+            // Luz de contorno
+            const rimLight = new THREE.DirectionalLight(0xffffff, 0.6);
+            rimLight.position.set(-5, 0, -5);
+            scene.add(rimLight);
+        }
+
+        function createEnvironment() {
+            // Plano reflexivo
+            const planeGeometry = new THREE.PlaneGeometry(20, 20);
+            const planeMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.8
+            });
+            const plane = new THREE.Mesh(planeGeometry, planeMaterial);
+            plane.rotation.x = -Math.PI / 2;
+            plane.position.y = -2;
+            plane.receiveShadow = true;
+            scene.add(plane);
+
+            // Folhas de palmeira no fundo
+            createPalmLeavesBackground();
+        }
+
+        function createPalmLeavesBackground() {
+            for (let i = 0; i < 6; i++) {
+                const leafGeometry = new THREE.PlaneGeometry(3, 8);
+                const leafMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0x228B22,
+                    transparent: true,
+                    opacity: 0.1 + Math.random() * 0.1
+                });
+                const leaf = new THREE.Mesh(leafGeometry, leafMaterial);
+                
+                leaf.position.set(
+                    (Math.random() - 0.5) * 20,
+                    (Math.random() - 0.5) * 10,
+                    -8 - Math.random() * 5
+                );
+                leaf.rotation.z = Math.random() * Math.PI;
+                scene.add(leaf);
+
+                // Animar folhas suavemente
+                anime({
+                    targets: leaf.rotation,
+                    z: leaf.rotation.z + Math.PI * 2,
+                    duration: 20000 + Math.random() * 10000,
+                    loop: true,
+                    easing: 'linear'
+                });
+            }
+        }
+
+        function createRealisticCoconut() {
+            coconutGroup = new THREE.Group();
+
+            createCoconutShell();
+            createCoconutMeat();
+            createCoconutWater();
+            createCoconutFibers();
+
+            coconutGroup.position.set(0, 0, 0);
+            scene.add(coconutGroup);
+
+            // Animação de entrada do coco
+            coconutGroup.scale.set(0, 0, 0);
+            anime({
+                targets: coconutGroup.scale,
+                x: [0, 1.2, 1],
+                y: [0, 1.2, 1],
+                z: [0, 1.2, 1],
+                duration: 1500,
+                easing: 'easeOutElastic(1, .8)'
+            });
+
+            // Rotação inicial suave
+            anime({
+                targets: coconutGroup.rotation,
+                y: Math.PI * 2,
+                duration: 3000,
+                easing: 'easeInOutSine'
+            });
+        }
+
+        function createCoconutShell() {
+            // Geometria do coco
+            const coconutGeometry = new THREE.SphereGeometry(1.5, 32, 32);
+            coconutGeometry.scale(1, 1.2, 1);
+
+            const coconutMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0x8B4513,
+                roughness: 0.9
+            });
+
+            // Coco inteiro
+            const coconutWhole = new THREE.Mesh(coconutGeometry, coconutMaterial);
+            coconutWhole.castShadow = true;
+            coconutWhole.receiveShadow = true;
+            addFibrousTexture(coconutWhole);
+
+            // Metades do coco (mantidas para compatibilidade, mas não usadas)
+            coconutHalf1 = new THREE.Mesh(coconutGeometry.clone(), coconutMaterial);
+            coconutHalf1.castShadow = true;
+            coconutHalf1.visible = false;
+            
+            coconutHalf2 = new THREE.Mesh(coconutGeometry.clone(), coconutMaterial);
+            coconutHalf2.castShadow = true;
+            coconutHalf2.visible = false;
+
+            coconutGroup.add(coconutWhole);
+            coconutGroup.add(coconutHalf1);
+            coconutGroup.add(coconutHalf2);
+        }
+
+        function addFibrousTexture(coconut) {
+            for (let i = 0; i < 50; i++) {
+                const lineGeometry = new THREE.CylinderGeometry(0.01, 0.01, 0.3, 4);
+                const lineMaterial = new THREE.MeshLambertMaterial({ color: 0x654321 });
+                const line = new THREE.Mesh(lineGeometry, lineMaterial);
+                
+                const phi = Math.random() * Math.PI * 2;
+                const theta = Math.random() * Math.PI;
+                const radius = 1.5;
+                
+                line.position.set(
+                    radius * Math.sin(theta) * Math.cos(phi),
+                    radius * Math.cos(theta) * 1.2,
+                    radius * Math.sin(theta) * Math.sin(phi)
+                );
+                
+                line.lookAt(0, 0, 0);
+                line.rotateX(Math.PI / 2);
+                coconutGroup.add(line);
+            }
+        }
+
+        function createCoconutMeat() {
+            const meatGeometry = new THREE.SphereGeometry(1.3, 24, 24);
+            meatGeometry.scale(1, 1.2, 1);
+            
+            const meatMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xFFFEF7,
+                roughness: 0.3,
+                transparent: true,
+                opacity: 0.95
+            });
+
+            coconutMeat = new THREE.Mesh(meatGeometry, meatMaterial);
+            coconutMeat.castShadow = true;
+            coconutMeat.visible = false;
+
+            createMeatPieces();
+            coconutGroup.add(coconutMeat);
+        }
+
+        function createMeatPieces() {
+            for (let i = 0; i < 8; i++) {
+                const pieceGeometry = new THREE.BoxGeometry(
+                    0.3 + Math.random() * 0.4,
+                    0.2 + Math.random() * 0.3,
+                    0.4 + Math.random() * 0.5
+                );
+                
+                const pieceMaterial = new THREE.MeshLambertMaterial({ 
+                    color: 0xFFFEF7,
+                    roughness: 0.2
+                });
+
+                const piece = new THREE.Mesh(pieceGeometry, pieceMaterial);
+                piece.position.set(
+                    (Math.random() - 0.5) * 6,
+                    -1.5 + Math.random() * 0.5,
+                    (Math.random() - 0.5) * 6
+                );
+                piece.rotation.set(
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI,
+                    Math.random() * Math.PI
+                );
+                piece.castShadow = true;
+                piece.visible = false;
+
+                meatPieces.push(piece);
+                scene.add(piece);
+            }
+        }
+
+        function createCoconutWater() {
+            const waterGeometry = new THREE.SphereGeometry(1.0, 16, 16);
+            waterGeometry.scale(1, 1.2, 1);
+            
+            const waterMaterial = new THREE.MeshLambertMaterial({ 
+                color: 0xE6F3FF,
+                transparent: true,
+                opacity: 0.6
+            });
+
+            coconutWater = new THREE.Mesh(waterGeometry, waterMaterial);
+            coconutWater.visible = false;
+            coconutGroup.add(coconutWater);
+        }
+
+        function createCoconutFibers() {
+            for (let i = 0; i < 30; i++) {
+                const fiberGeometry = new THREE.CylinderGeometry(0.005, 0.01, 0.8 + Math.random() * 0.4, 4);
+                const fiberMaterial = new THREE.MeshLambertMaterial({ 
+                    color: new THREE.Color().setHSL(0.08, 0.6, 0.3 + Math.random() * 0.2)
+                });
+                
+                const fiber = new THREE.Mesh(fiberGeometry, fiberMaterial);
+                fiber.position.set(
+                    (Math.random() - 0.5) * 4,
+                    -1.5 + Math.random() * 0.5,
+                    (Math.random() - 0.5) * 4
+                );
+                fiber.rotation.set(
+                    (Math.random() - 0.5) * Math.PI,
+                    Math.random() * Math.PI * 2,
+                    (Math.random() - 0.5) * Math.PI
+                );
+                fiber.castShadow = true;
+                fiber.visible = false;
+
+                fibers.push(fiber);
+                scene.add(fiber);
+            }
+        }
+
+        function setupMouseControls() {
+            renderer.domElement.addEventListener('mousedown', onMouseDown);
+            renderer.domElement.addEventListener('mousemove', onMouseMove);
+            renderer.domElement.addEventListener('mouseup', onMouseUp);
+            renderer.domElement.addEventListener('wheel', onMouseWheel);
+
+            // Tooltips
+            document.querySelectorAll('[data-tooltip]').forEach(element => {
+                element.addEventListener('mouseenter', showTooltip);
+                element.addEventListener('mouseleave', hideTooltip);
+            });
+        }
+
+        function showTooltip(event) {
+            const tooltip = document.getElementById('tooltip');
+            tooltip.textContent = event.target.getAttribute('data-tooltip');
+            tooltip.style.left = event.pageX + 10 + 'px';
+            tooltip.style.top = event.pageY - 30 + 'px';
+            
+            anime({
+                targets: tooltip,
+                opacity: [0, 1],
+                translateY: [10, 0],
+                duration: 200,
+                easing: 'easeOutQuad'
+            });
+        }
+
+        function hideTooltip() {
+            const tooltip = document.getElementById('tooltip');
+            anime({
+                targets: tooltip,
+                opacity: [1, 0],
+                duration: 200,
+                easing: 'easeInQuad'
+            });
+        }
+
+        function onMouseDown(event) {
+            event.preventDefault();
+            isMouseDown = true;
+            mouseXOnMouseDown = event.clientX - window.innerWidth / 2;
+            mouseYOnMouseDown = event.clientY - window.innerHeight / 2;
+            targetRotationOnMouseDownX = targetRotationX;
+            targetRotationOnMouseDownY = targetRotationY;
+        }
+
+        function onMouseMove(event) {
+            if (isMouseDown) {
+                mouseX = event.clientX - window.innerWidth / 2;
+                mouseY = event.clientY - window.innerHeight / 2;
+                targetRotationY = targetRotationOnMouseDownX + (mouseX - mouseXOnMouseDown) * 0.02;
+                targetRotationX = targetRotationOnMouseDownY + (mouseY - mouseYOnMouseDown) * 0.02;
+            }
+        }
+
+        function onMouseUp() {
+            isMouseDown = false;
+        }
+
+        function onMouseWheel(event) {
+            const newZ = camera.position.z + event.deltaY * 0.01;
+            anime({
+                targets: camera.position,
+                z: Math.max(3, Math.min(15, newZ)),
+                duration: 300,
+                easing: 'easeOutQuad'
+            });
+        }
+
+        function animate() {
+            animationId = requestAnimationFrame(animate);
+
+            if (!isRotating && !isAnimating) {
+                coconutGroup.rotation.y += (targetRotationY - coconutGroup.rotation.y) * 0.05;
+                coconutGroup.rotation.x += (targetRotationX - coconutGroup.rotation.x) * 0.05;
+            }
+
+            // Flutuação sutil
+            coconutGroup.position.y = Math.sin(Date.now() * 0.001) * 0.1;
+
+            renderer.render(scene, camera);
+        }
+
+        // Funções de controle com Anime.js
+        function explodeCoco() {
+            if (isAnimating) return;
+            isAnimating = true;
+            isExploded = !isExploded;
+            
+            if (isExploded) {
+                // Esconder coco inteiro
+                coconutGroup.children[0].visible = false;
+                
+                // Mostrar componentes
+                coconutMeat.visible = true;
+                coconutWater.visible = true;
+                fibers.forEach(fiber => fiber.visible = true);
+                meatPieces.forEach(piece => piece.visible = true);
+                
+                // Animar explosão com Anime.js
+                anime({
+                    targets: fibers.map(f => f.position),
+                    x: (el, i) => el.x + (Math.random() - 0.5) * 4,
+                    z: (el, i) => el.z + (Math.random() - 0.5) * 4,
+                    duration: 1000,
+                    easing: 'easeOutElastic(1, .8)'
+                });
+                
+                anime({
+                    targets: meatPieces.map(p => p.position),
+                    x: (el, i) => el.x + (Math.random() - 0.5) * 3,
+                    z: (el, i) => el.z + (Math.random() - 0.5) * 3,
+                    duration: 1200,
+                    delay: anime.stagger(100),
+                    easing: 'easeOutElastic(1, .8)',
+                    complete: () => { isAnimating = false; }
+                });
+                
+                // Animar rotação dos pedaços
+                anime({
+                    targets: meatPieces.map(p => p.rotation),
+                    x: (el, i) => el.x + Math.PI,
+                    y: (el, i) => el.y + Math.PI,
+                    z: (el, i) => el.z + Math.PI,
+                    duration: 1500,
+                    easing: 'easeOutQuad'
+                });
+                
+            } else {
+                resetCoco();
+            }
+        }
+
+        function rotateCoco() {
+            isRotating = !isRotating;
+            
+            if (isRotating) {
+                anime({
+                    targets: coconutGroup.rotation,
+                    y: '+=6.28', // 2π radianos
+                    duration: 4000,
+                    loop: true,
+                    easing: 'linear'
+                });
+            } else {
+                anime.remove(coconutGroup.rotation);
+            }
+        }
+
+        function changeLighting() {
+            const lights = scene.children.filter(child => child.type.includes('Light'));
+            
+            if (lightingMode === 'natural') {
+                anime({
+                    targets: lights[1],
+                    intensity: 2.0,
+                    duration: 500
+                });
+                anime({
+                    targets: scene.background,
+                    r: 0.17,
+                    g: 0.17,
+                    b: 0.17,
+                    duration: 500
+                });
+                lightingMode = 'dramatic';
+            } else if (lightingMode === 'dramatic') {
+                anime({
+                    targets: lights[1],
+                    intensity: 0.8,
+                    duration: 500
+                });
+                anime({
+                    targets: scene.background,
+                    r: 1,
+                    g: 1,
+                    b: 1,
+                    duration: 500
+                });
+                lightingMode = 'soft';
+            } else {
+                anime({
+                    targets: lights[1],
+                    intensity: 1.2,
+                    duration: 500
+                });
+                anime({
+                    targets: scene.background,
+                    r: 0.97,
+                    g: 0.98,
+                    b: 0.98,
+                    duration: 500
+                });
+                lightingMode = 'natural';
+            }
+        }
+
+        function playSequence() {
+            if (isAnimating) return;
+            
+            resetCoco();
+            
+            setTimeout(() => {
+                anime({
+                    targets: coconutGroup.rotation,
+                    y: Math.PI * 2,
+                    duration: 2000,
+                    easing: 'easeInOutSine',
+                    complete: () => {
+                        setTimeout(() => {
+                            explodeCoco();
+                        }, 1000);
+                    }
+                });
+            }, 500);
+        }
+
+        function resetCoco() {
+            if (isAnimating) return;
+            isAnimating = true;
+            
+            isExploded = false;
+            isRotating = false;
+            
+            anime.remove(coconutGroup.rotation);
+            
+            // Resetar visibilidade
+            coconutGroup.children[0].visible = true;
+            coconutHalf1.visible = false;
+            coconutHalf2.visible = false;
+            coconutMeat.visible = false;
+            coconutWater.visible = false;
+            
+            // Resetar fibras e pedaços
+            fibers.forEach((fiber, i) => {
+                fiber.visible = false;
+                anime({
+                    targets: fiber.position,
+                    x: (Math.random() - 0.5) * 4,
+                    y: -1.5 + Math.random() * 0.5,
+                    z: (Math.random() - 0.5) * 4,
+                    duration: 600,
+                    delay: i * 20,
+                    easing: 'easeInOutQuad'
+                });
+            });
+            
+            meatPieces.forEach((piece, i) => {
+                piece.visible = false;
+                anime({
+                    targets: piece.position,
+                    x: (Math.random() - 0.5) * 6,
+                    y: -1.5 + Math.random() * 0.5,
+                    z: (Math.random() - 0.5) * 6,
+                    duration: 600,
+                    delay: i * 30,
+                    easing: 'easeInOutQuad',
+                    complete: () => {
+                        if (i === meatPieces.length - 1) {
+                            isAnimating = false;
+                        }
+                    }
+                });
+            });
+            
+            targetRotationX = 0;
+            targetRotationY = 0;
+        }
+
+        // Responsividade
+        function onWindowResize() {
+            camera.aspect = window.innerWidth / window.innerHeight;
+            camera.updateProjectionMatrix();
+            renderer.setSize(window.innerWidth, window.innerHeight);
+        }
+
+        window.addEventListener('resize', onWindowResize);
+        window.addEventListener('load', init);
+
+        window.addEventListener('beforeunload', () => {
+            if (animationId) {
+                cancelAnimationFrame(animationId);
+            }
+        });
+    </script>
+</body>
+</html>

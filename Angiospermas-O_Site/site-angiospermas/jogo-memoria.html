@@ -1,0 +1,540 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Jogo da Memória - Angiospermas</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .memory-card {
+            perspective: 1000px;
+            transform-style: preserve-3d;
+            transition: transform 0.5s;
+        }
+
+        .memory-card.flipped .card-inner {
+            transform: rotateY(180deg);
+        }
+
+        .card-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            transition: transform 0.5s;
+            transform-style: preserve-3d;
+        }
+
+        .card-front,
+        .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+
+        .card-back {
+            transform: rotateY(180deg);
+        }
+
+        @keyframes celebrate {
+
+            0%,
+            100% {
+                transform: scale(1);
+            }
+
+            50% {
+                transform: scale(1.1);
+            }
+        }
+
+        .celebrate {
+            animation: celebrate 0.5s ease-in-out;
+        }
+
+        /* Cores consistentes com o site principal */
+        .navbar {
+            background: linear-gradient(135deg, #2d5a27, #4a7c59) !important;
+        }
+
+        .text-green-800 {
+            color: #2d5a27 !important;
+        }
+
+        .text-green-600 {
+            color: #4a7c59 !important;
+        }
+
+        .bg-green-600 {
+            background-color: #4a7c59 !important;
+        }
+
+        .bg-green-700 {
+            background-color: #2d5a27 !important;
+        }
+
+        .hover\:bg-green-700:hover {
+            background-color: #2d5a27 !important;
+        }
+
+        .bg-green-100 {
+            background-color: #f0f8f0 !important;
+        }
+
+        .bg-green-50 {
+            background-color: #f8f9fa !important;
+        }
+    </style>
+</head>
+
+<body class="bg-green-50 min-h-screen">
+    <!-- Navegação -->
+    <nav class="bg-green-700 text-white shadow-lg">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <i class="fas fa-leaf text-2xl"></i>
+                <span class="text-xl font-bold">Angiospermas</span>
+            </div>
+            <div class="hidden md:flex space-x-6">
+                <a href="index.html" class="hover:text-green-200 transition">Voltar ao Site</a>
+                <a href="#" class="hover:text-green-200 transition" id="instructions-btn">Instruções</a>
+            </div>
+            <button class="md:hidden text-xl">
+                <i class="fas fa-bars"></i>
+            </button>
+        </div>
+    </nav>
+
+    <!-- Cabeçalho do Jogo -->
+    <header class="py-8 bg-white shadow-md">
+        <div class="container mx-auto px-4 text-center">
+            <h1 class="text-3xl md:text-4xl font-bold text-green-800 mb-4">Jogo da Memória: Angiospermas</h1>
+            <p class="text-lg text-gray-600 max-w-2xl mx-auto">
+                Teste sua memória e aprenda sobre diferentes espécies de angiospermas. Encontre os pares correspondentes
+                para vencer!
+            </p>
+        </div>
+    </header>
+
+    <!-- Painel de Controle -->
+    <div class="container mx-auto px-4 py-6">
+        <div class="bg-white rounded-lg shadow-md p-4 mb-8">
+            <div class="flex flex-col md:flex-row justify-between items-center gap-4">
+                <div class="flex flex-wrap gap-4 justify-center md:justify-start">
+                    <div class="bg-green-100 rounded-lg p-3 text-center min-w-[120px]">
+                        <p class="text-sm text-green-800 font-medium">Tempo</p>
+                        <p class="text-xl font-bold text-green-800" id="timer">00:00</p>
+                    </div>
+                    <div class="bg-green-100 rounded-lg p-3 text-center min-w-[120px]">
+                        <p class="text-sm text-green-800 font-medium">Movimentos</p>
+                        <p class="text-xl font-bold text-green-800" id="moves">0</p>
+                    </div>
+                    <div class="bg-green-100 rounded-lg p-3 text-center min-w-[120px]">
+                        <p class="text-sm text-green-800 font-medium">Pares</p>
+                        <p class="text-xl font-bold text-green-800"><span id="pairs-found">0</span>/<span
+                                id="total-pairs">8</span></p>
+                    </div>
+                </div>
+                <div class="flex gap-3">
+                    <select id="difficulty"
+                        class="bg-white border border-green-300 text-green-800 rounded-lg px-4 py-2 focus:outline-none focus:ring-2 focus:ring-green-500">
+                        <option value="8">Fácil (8 pares)</option>
+                        <option value="10">Médio (10 pares)</option>
+                        <option value="12">Difícil (12 pares)</option>
+                    </select>
+                    <button id="restart-btn"
+                        class="bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-4 rounded-lg transition duration-300">
+                        Reiniciar
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Área do Jogo -->
+    <main class="container mx-auto px-4 pb-16">
+        <div id="game-board" class="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-4xl mx-auto">
+            <!-- Cards serão gerados dinamicamente pelo JavaScript -->
+        </div>
+    </main>
+
+    <!-- Modal de Instruções -->
+    <div id="instructions-modal"
+        class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+            <div class="flex justify-between items-start mb-4">
+                <h2 class="text-2xl font-bold text-green-800">Como Jogar</h2>
+                <button id="close-instructions" class="text-gray-500 hover:text-gray-700">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div class="space-y-4">
+                <p>O jogo da memória de angiospermas é uma forma divertida de testar sua memória enquanto aprende sobre
+                    diferentes espécies de plantas com flores.</p>
+                <ol class="list-decimal pl-6 space-y-2">
+                    <li>Clique em uma carta para virá-la e revelar a imagem de uma angiosperma.</li>
+                    <li>Clique em outra carta para tentar encontrar o par correspondente.</li>
+                    <li>Se as cartas formarem um par, elas permanecerão viradas.</li>
+                    <li>Se não formarem um par, elas serão viradas para baixo novamente.</li>
+                    <li>O objetivo é encontrar todos os pares com o menor número de movimentos possível.</li>
+                </ol>
+                <p class="font-medium">Dificuldades:</p>
+                <ul class="list-disc pl-6 space-y-1">
+                    <li><span class="font-medium">Fácil:</span> 8 pares (16 cartas)</li>
+                    <li><span class="font-medium">Médio:</span> 10 pares (20 cartas)</li>
+                    <li><span class="font-medium">Difícil:</span> 12 pares (24 cartas)</li>
+                </ul>
+            </div>
+            <button id="start-game"
+                class="mt-6 bg-green-600 hover:bg-green-700 text-white font-bold py-2 px-6 rounded-lg w-full transition duration-300">
+                Começar a Jogar
+            </button>
+        </div>
+    </div>
+
+    <!-- Modal de Vitória -->
+    <div id="victory-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-xl p-6 max-w-lg w-full mx-4">
+            <div class="text-center">
+                <div class="text-green-600 text-6xl mb-4">
+                    <i class="fas fa-trophy"></i>
+                </div>
+                <h2 class="text-2xl font-bold text-green-800 mb-2">Parabéns!</h2>
+                <p class="text-lg mb-4">Você completou o jogo da memória!</p>
+                <div class="bg-green-50 rounded-lg p-4 mb-6">
+                    <div class="grid grid-cols-2 gap-4">
+                        <div>
+                            <p class="text-sm text-green-800">Tempo</p>
+                            <p class="text-xl font-bold text-green-800" id="final-time">00:00</p>
+                        </div>
+                        <div>
+                            <p class="text-sm text-green-800">Movimentos</p>
+                            <p class="text-xl font-bold text-green-800" id="final-moves">0</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="flex gap-4">
+                    <button id="play-again"
+                        class="flex-1 bg-green-600 hover:bg-green-700 text-white font-bold py-3 px-6 rounded-lg transition duration-300">
+                        Jogar Novamente
+                    </button>
+                    <button id="back-to-site"
+                        class="flex-1 bg-gray-200 hover:bg-gray-300 text-gray-800 font-bold py-3 px-6 rounded-lg transition duration-300">
+                        Voltar ao Site
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Dados das cartas - pares de angiospermas
+        const cardData = [
+            { id: 1, name: "Tulipa", image: "../img/tulipa.jpeg?height=200&width=200&text=Girassol" },
+            { id: 2, name: "Lírio", image: "../img/lirio.jpg?height=200&width=200&text=Lírio" },
+            { id: 3, name: "Margarida", image: "../img/margarida.jpeg?height=200&width=200&text=Margarida" },
+            { id: 4, name: "Hibisco", image: "../img/hibisco.jpeg?height=200&width=200&text=Hibisco" },
+            { id: 5, name: "Lavanda", image: "../img/lavanda.jpeg?height=200&width=200&text=Lavanda" },
+            { id: 6, name: "Antúrio", image: "../img/anturio.jpg?height=200&width=200&text=Antúrio" },
+            { id: 7, name: "Begônia", image: "../img/begonia.jpg?height=200&width=200&text=Begônia" },
+            { id: 8, name: "Violeta", image: "../img/violeta.jpeg?height=200&width=200&text=Violeta" },
+            { id: 9, name: "Azaleia", image: "../img/azaleia.jpeg?height=200&width=200&text=Azaleia" },
+            { id: 10, name: "Café", image: "../img/cafe.jpg?height=200&width=200&text=Café" },
+            { id: 11, name: "Cacto", image: "../img/cacto.jpg?height=200&width=200&text=Cacto" },
+            { id: 12, name: "Vitória-Régia", image: "../img/vitoriaregia.jpg?height=200&width=200&text=Vitória-Régia" }
+        ];
+
+        // Variáveis do jogo
+        let cards = [];
+        let flippedCards = [];
+        let matchedPairs = 0;
+        let totalPairs = 8;
+        let moves = 0;
+        let gameStarted = false;
+        let gameTimer;
+        let seconds = 0;
+        let canFlip = true;
+
+        // Elementos DOM
+        const gameBoard = document.getElementById('game-board');
+        const movesDisplay = document.getElementById('moves');
+        const pairsFoundDisplay = document.getElementById('pairs-found');
+        const totalPairsDisplay = document.getElementById('total-pairs');
+        const timerDisplay = document.getElementById('timer');
+        const restartBtn = document.getElementById('restart-btn');
+        const difficultySelect = document.getElementById('difficulty');
+        const instructionsBtn = document.getElementById('instructions-btn');
+        const instructionsModal = document.getElementById('instructions-modal');
+        const closeInstructionsBtn = document.getElementById('close-instructions');
+        const startGameBtn = document.getElementById('start-game');
+        const victoryModal = document.getElementById('victory-modal');
+        const finalTimeDisplay = document.getElementById('final-time');
+        const finalMovesDisplay = document.getElementById('final-moves');
+        const playAgainBtn = document.getElementById('play-again');
+        const backToSiteBtn = document.getElementById('back-to-site');
+
+        // Inicializar o jogo
+        function initGame() {
+            // Resetar variáveis
+            flippedCards = [];
+            matchedPairs = 0;
+            moves = 0;
+            seconds = 0;
+            canFlip = true;
+            gameStarted = false;
+            clearInterval(gameTimer);
+
+            // Atualizar displays
+            movesDisplay.textContent = moves;
+            pairsFoundDisplay.textContent = matchedPairs;
+            timerDisplay.textContent = '00:00';
+
+            // Obter dificuldade selecionada
+            totalPairs = parseInt(difficultySelect.value);
+            totalPairsDisplay.textContent = totalPairs;
+
+            // Criar pares de cartas
+            createCardPairs();
+
+            // Renderizar tabuleiro
+            renderGameBoard();
+        }
+
+        // Criar pares de cartas com base na dificuldade
+        function createCardPairs() {
+            // Selecionar cartas com base na dificuldade
+            const selectedCards = cardData.slice(0, totalPairs);
+
+            // Criar pares (duplicar cartas)
+            cards = [...selectedCards, ...selectedCards].map((card, index) => ({
+                ...card,
+                uniqueId: index,
+                isFlipped: false,
+                isMatched: false
+            }));
+
+            // Embaralhar cartas
+            shuffleCards();
+        }
+
+        // Embaralhar cartas (algoritmo Fisher-Yates)
+        function shuffleCards() {
+            for (let i = cards.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [cards[i], cards[j]] = [cards[j], cards[i]];
+            }
+        }
+
+        // Renderizar tabuleiro de jogo
+        function renderGameBoard() {
+            // Limpar tabuleiro
+            gameBoard.innerHTML = '';
+
+            // Ajustar layout com base na dificuldade
+            if (totalPairs <= 8) {
+                gameBoard.className = 'grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-4 gap-4 max-w-4xl mx-auto';
+            } else if (totalPairs <= 10) {
+                gameBoard.className = 'grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-5 gap-4 max-w-5xl mx-auto';
+            } else {
+                gameBoard.className = 'grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 max-w-6xl mx-auto';
+            }
+
+            // Criar elementos de carta
+            cards.forEach(card => {
+                const cardElement = document.createElement('div');
+                cardElement.className = `memory-card ${card.isFlipped ? 'flipped' : ''} ${card.isMatched ? 'opacity-70' : ''} aspect-square bg-white rounded-lg shadow-md overflow-hidden cursor-pointer hover:shadow-lg transition-shadow duration-300`;
+                cardElement.dataset.id = card.uniqueId;
+
+                cardElement.innerHTML = `
+                    <div class="card-inner h-full w-full">
+                        <div class="card-front flex items-center justify-center h-full bg-green-600 p-4">
+                            <i class="fas fa-leaf text-white text-4xl"></i>
+                        </div>
+                        <div class="card-back flex flex-col items-center justify-center h-full p-2">
+                            <img src="${card.image}" alt="${card.name}" class="w-full h-3/4 object-contain">
+                            <p class="mt-2 text-center font-medium text-green-800">${card.name}</p>
+                        </div>
+                    </div>
+                `;
+
+                cardElement.addEventListener('click', () => flipCard(card.uniqueId));
+                gameBoard.appendChild(cardElement);
+            });
+        }
+
+        // Virar carta
+        function flipCard(cardId) {
+            // Verificar se pode virar a carta
+            if (!canFlip) return;
+
+            // Encontrar a carta clicada
+            const cardIndex = cards.findIndex(card => card.uniqueId === cardId);
+            const card = cards[cardIndex];
+
+            // Verificar se a carta já está virada ou já foi encontrada
+            if (card.isFlipped || card.isMatched) return;
+
+            // Iniciar temporizador se for o primeiro movimento
+            if (!gameStarted) {
+                startTimer();
+                gameStarted = true;
+            }
+
+            // Virar a carta
+            card.isFlipped = true;
+            flippedCards.push(card);
+
+            // Atualizar visual
+            const cardElement = document.querySelector(`[data-id="${cardId}"]`);
+            cardElement.classList.add('flipped');
+
+            // Verificar se há duas cartas viradas
+            if (flippedCards.length === 2) {
+                moves++;
+                movesDisplay.textContent = moves;
+
+                // Verificar se as cartas formam um par
+                checkForMatch();
+            }
+        }
+
+        // Verificar se as cartas viradas formam um par
+        function checkForMatch() {
+            const [card1, card2] = flippedCards;
+
+            // Impedir que o jogador vire mais cartas enquanto verifica
+            canFlip = false;
+
+            // Verificar se as cartas têm o mesmo ID (são do mesmo tipo)
+            if (card1.id === card2.id) {
+                // Par encontrado
+                setTimeout(() => {
+                    // Marcar cartas como encontradas
+                    cards = cards.map(card => {
+                        if (card.uniqueId === card1.uniqueId || card.uniqueId === card2.uniqueId) {
+                            return { ...card, isMatched: true };
+                        }
+                        return card;
+                    });
+
+                    // Atualizar visual
+                    const card1Element = document.querySelector(`[data-id="${card1.uniqueId}"]`);
+                    const card2Element = document.querySelector(`[data-id="${card2.uniqueId}"]`);
+
+                    card1Element.classList.add('opacity-70', 'celebrate');
+                    card2Element.classList.add('opacity-70', 'celebrate');
+
+                    // Remover animação após ela terminar
+                    setTimeout(() => {
+                        card1Element.classList.remove('celebrate');
+                        card2Element.classList.remove('celebrate');
+                    }, 500);
+
+                    // Atualizar contagem de pares
+                    matchedPairs++;
+                    pairsFoundDisplay.textContent = matchedPairs;
+
+                    // Verificar se o jogo acabou
+                    if (matchedPairs === totalPairs) {
+                        endGame();
+                    }
+
+                    // Resetar cartas viradas
+                    flippedCards = [];
+                    canFlip = true;
+                }, 500);
+            } else {
+                // Não é um par
+                setTimeout(() => {
+                    // Desvirar as cartas
+                    cards = cards.map(card => {
+                        if (card.uniqueId === card1.uniqueId || card.uniqueId === card2.uniqueId) {
+                            return { ...card, isFlipped: false };
+                        }
+                        return card;
+                    });
+
+                    // Atualizar visual
+                    const card1Element = document.querySelector(`[data-id="${card1.uniqueId}"]`);
+                    const card2Element = document.querySelector(`[data-id="${card2.uniqueId}"]`);
+
+                    card1Element.classList.remove('flipped');
+                    card2Element.classList.remove('flipped');
+
+                    // Resetar cartas viradas
+                    flippedCards = [];
+                    canFlip = true;
+                }, 1000);
+            }
+        }
+
+        // Iniciar temporizador
+        function startTimer() {
+            clearInterval(gameTimer);
+            seconds = 0;
+            gameTimer = setInterval(() => {
+                seconds++;
+                const minutes = Math.floor(seconds / 60);
+                const remainingSeconds = seconds % 60;
+                timerDisplay.textContent = `${minutes.toString().padStart(2, '0')}:${remainingSeconds.toString().padStart(2, '0')}`;
+            }, 1000);
+        }
+
+        // Finalizar jogo
+        function endGame() {
+            clearInterval(gameTimer);
+
+            // Atualizar modal de vitória
+            finalTimeDisplay.textContent = timerDisplay.textContent;
+            finalMovesDisplay.textContent = moves;
+
+            // Mostrar modal após um breve atraso
+            setTimeout(() => {
+                victoryModal.classList.remove('hidden');
+            }, 1000);
+        }
+
+        // Event Listeners
+        restartBtn.addEventListener('click', initGame);
+
+        difficultySelect.addEventListener('change', () => {
+            totalPairs = parseInt(difficultySelect.value);
+            totalPairsDisplay.textContent = totalPairs;
+            initGame();
+        });
+
+        instructionsBtn.addEventListener('click', () => {
+            instructionsModal.classList.remove('hidden');
+        });
+
+        closeInstructionsBtn.addEventListener('click', () => {
+            instructionsModal.classList.add('hidden');
+        });
+
+        startGameBtn.addEventListener('click', () => {
+            instructionsModal.classList.add('hidden');
+            initGame();
+        });
+
+        playAgainBtn.addEventListener('click', () => {
+            victoryModal.classList.add('hidden');
+            initGame();
+        });
+
+        backToSiteBtn.addEventListener('click', () => {
+            window.location.href = 'index.html';
+        });
+
+        // Inicializar o jogo ao carregar a página
+        window.addEventListener('DOMContentLoaded', () => {
+            initGame();
+            // Mostrar instruções na primeira vez
+            instructionsModal.classList.remove('hidden');
+        });
+    </script>
+</body>
+
+</html>
